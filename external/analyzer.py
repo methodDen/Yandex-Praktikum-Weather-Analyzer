@@ -183,7 +183,6 @@ def analyze_json(data):
     # analyzing days
     time_start = None
     time_end = None
-
     days_data = deep_getitem(data, INPUT_FORECAST_PATH)
     days = []
     # ToDo force sort by day in asc mode
