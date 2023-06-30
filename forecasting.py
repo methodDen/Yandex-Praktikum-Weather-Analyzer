@@ -31,5 +31,6 @@ if __name__ == "__main__":
     # resp = forecast_weather()
     data = DataFetchingTask.get_weather_data()
     # data = analyze_json(resp)
-    pprint(data)
-    DataCalculationTask.calculate_data(data)
+    # pprint(data)
+    data = DataCalculationTask.calculate_data(data)
+    DataAggregationTask.aggregate_data(data)
