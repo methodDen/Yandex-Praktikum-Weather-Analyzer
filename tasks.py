@@ -1,6 +1,7 @@
 import json
 import logging
 import multiprocessing
+import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from typing import List
@@ -28,7 +29,7 @@ class DataFetchingTask:
         return {"city_name": data["city_name"], **analyze_json(data["data"])}
 
     @staticmethod
-    def get_weather_data():
+    def get_weather_data() -> List[dict]:
         with ThreadPoolExecutor(max_workers=4) as pool:
             results = pool.map(
                 DataFetchingTask.get_weather_data_by_city, CITIES,
@@ -136,16 +137,16 @@ class DataCalculationTask:
 
 class DataAggregationTask:
     @staticmethod
-    def write_data(data: dict, file, lock: multiprocessing.Lock):
+    def write_data(data: dict, file, lock: multiprocessing.Lock) -> None:
         with lock:
-            json.dump(data, file, indent=4)
+            json.dump(data, file, indent=2)
             file.write(",\n")
 
     @staticmethod
-    def aggregate_data(data: List[dict]):
+    def aggregate_data(data: List[dict]) -> None:
         lock = threading.Lock()
-        filepath = "data.json"
-        file = open(filepath, "a", newline="\n")
+        file = open('data.json', "a")
+        file.write("[\n")
         threads = [
             threading.Thread(
                 target=DataAggregationTask.write_data, args=(d, file, lock),
@@ -158,7 +159,28 @@ class DataAggregationTask:
             thread.join()
         file.close()
 
+        with open('data.json', 'rb+') as filehandle:
+            filehandle.seek(-2, os.SEEK_END)
+            filehandle.truncate()
+
+        with open('data.json', 'a') as filehandle:
+            filehandle.write("\n]")
+
 
 class DataAnalyzingTask:
-    # use multiprocessing
-    pass
+    @staticmethod
+    def read_data(filepath: str) -> List[dict]:
+        with open(filepath, "r") as file:
+            json_data = file.read()
+        data = json.loads(json_data)
+        return data
+
+    @staticmethod
+    def get_optimal_city() -> dict:
+        data = DataAnalyzingTask.read_data("data.json")
+        data = {
+            "city_name": data[0]["city_name"],
+            "avg_temp": data[0]["avg_temp"],
+            "avg_relevant_cond_hours": data[0]["avg_relevant_cond_hours"],
+        }
+        return data
