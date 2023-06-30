@@ -31,7 +31,8 @@ class DataFetchingTask:
     def get_weather_data():
         with ThreadPoolExecutor(max_workers=4) as pool:
             results = pool.map(
-                DataFetchingTask.get_weather_data_by_city, CITIES)
+                DataFetchingTask.get_weather_data_by_city, CITIES,
+            )
         with multiprocessing.Pool() as pool:
             results = pool.map(DataFetchingTask.reformat_data, results)
         return results
@@ -47,10 +48,10 @@ class DataCalculationTask:
                         deep_getitem(d, "temp_avg")
                         for d in data
                         if deep_getitem(d, "temp_avg") is not None
-                    ]
+                    ],
                 ),
                 "relevant_cond_hours_sum": sum(
-                    [deep_getitem(d, "relevant_cond_hours") for d in data]
+                    [deep_getitem(d, "relevant_cond_hours") for d in data],
                 ),
                 "number_of_days": sum(
                     1 for d in data if deep_getitem(d, "hours_count") > 0
@@ -98,19 +99,19 @@ class DataCalculationTask:
                             [
                                 deep_getitem(d, "temp_avg_sum")
                                 for d in chunk_metric_sum_results
-                            ]
+                            ],
                         ),
                         "relevant_cond_hours_sum": sum(
                             [
                                 deep_getitem(d, "relevant_cond_hours_sum")
                                 for d in chunk_metric_sum_results
-                            ]
+                            ],
                         ),
                         "number_of_days": sum(
                             [
                                 deep_getitem(d, "number_of_days")
                                 for d in chunk_metric_sum_results
-                            ]
+                            ],
                         ),
                     }
 
@@ -147,7 +148,7 @@ class DataAggregationTask:
         file = open(filepath, "a", newline="\n")
         threads = [
             threading.Thread(
-                target=DataAggregationTask.write_data, args=(d, file, lock)
+                target=DataAggregationTask.write_data, args=(d, file, lock),
             )
             for d in data
         ]
