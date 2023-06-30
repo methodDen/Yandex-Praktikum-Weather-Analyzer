@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass, field
 from functools import reduce
 from operator import getitem
-from typing import Optional, List, Dict
+from typing import Dict, List, Optional
 
 PATH_FROM_INPUT = "./../examples/response.json"
 PATH_TO_OUTPUT = "./../examples/output.json"
@@ -111,14 +111,16 @@ class HourInfo:
             return
 
         self.hour = int(self.raw_data[INPUT_HOUR_PATH])
-        self.temperature = int(deep_getitem(self.raw_data, INPUT_TEMPERATURE_PATH))
+        self.temperature = int(deep_getitem(
+            self.raw_data, INPUT_TEMPERATURE_PATH))
         self.condition = deep_getitem(self.raw_data, INPUT_CONDITION_PATH)
 
 
 @dataclass
 class DayInfo:
     raw_data: Dict[str, tuple[str, int]] = field(repr=False)
-    hours: Optional[List[HourInfo]] = field(init=False, repr=False, default=None)
+    hours: Optional[List[HourInfo]] = field(
+        init=False, repr=False, default=None)
 
     date: Optional[str] = field(init=False, default=None)
     hour_start: Optional[int] = field(init=False, default=None)
@@ -182,7 +184,6 @@ def analyze_json(data):
 
     # analyzing days
     time_start = None
-    time_end = None
     days_data = deep_getitem(data, INPUT_FORECAST_PATH)
     days = []
     # ToDo force sort by day in asc mode
@@ -191,7 +192,6 @@ def analyze_json(data):
         d_date = d_info.date
 
         time_start = time_start or d_date
-        time_end = d_date
 
         days.append(d_info.to_json())
 
@@ -207,7 +207,8 @@ if __name__ == "__main__":
     output_path = args.output
     verbose_mode = args.verbose
 
-    logging.basicConfig(level=logging.DEBUG if verbose_mode else logging.WARNING)
+    logging.basicConfig(
+        level=logging.DEBUG if verbose_mode else logging.WARNING)
     logging.info(args)
 
     data = load_data(input_path)

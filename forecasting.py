@@ -2,17 +2,10 @@
 # import threading
 # import subprocess
 # import multiprocessing
-from pprint import pprint
 
-from external.analyzer import analyze_json
 from external.client import YandexWeatherAPI
-from tasks import (
-    DataFetchingTask,
-    DataCalculationTask,
-    DataAggregationTask,
-    DataAnalyzingTask,
-)
-from utils import CITIES, get_url_by_city_name
+from tasks import DataAggregationTask, DataCalculationTask, DataFetchingTask
+from utils import get_url_by_city_name
 
 
 def forecast_weather():
