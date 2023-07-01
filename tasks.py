@@ -22,7 +22,8 @@ class DataFetchingTask:
             data["data"] = YandexWeatherAPI.get_forecasting(url_with_data)
             return data
         except (HTTPError, JSONDecodeError) as ex:
-            logging.error(f"Error during fetching data for {city_name}: {ex}")
+            logging.error(
+                f"Error during fetching data for %s: %s", city_name, ex)
             data["data"] = {}
             return data
 
@@ -122,7 +123,7 @@ class DataCalculationTask:
                     )
                 else:
                     logging.warning(
-                        f"Data for calculating average values for city '{data['city_name']}' is absent")
+                        f"Data for calculating average values for city '%s' is absent", data['city_name'])
                     data["avg_temp"] = 0
                     data["avg_relevant_cond_hours"] = 0
         data_list = DataCalculationTask.sort_calculated_data(data_list)

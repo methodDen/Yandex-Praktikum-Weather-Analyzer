@@ -36,7 +36,7 @@ def deep_getitem(obj, path: str):
     try:
         return reduce(getitem, path.split(">"), obj)
     except (KeyError, TypeError):
-        logging.warning(f"Can't get value from {obj} by path '{path}'")
+        logging.warning(f"Can't get value from %s by path '%s'", obj, path)
         return None
 
 
