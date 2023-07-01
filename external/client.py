@@ -3,6 +3,8 @@ import logging
 from http import HTTPStatus
 from urllib.request import urlopen
 
+from exceptions import ApiException, FetchForecastException
+
 ERR_MESSAGE_TEMPLATE = "Unexpected error: {error}"
 
 
@@ -21,15 +23,15 @@ class YandexWeatherAPI:
                 resp_body = response.read().decode("utf-8")
                 data = json.loads(resp_body)
             if response.status != HTTPStatus.OK:
-                raise Exception(
+                raise ApiException(
                     "Error during execute request. {}: {}".format(
                         resp_body.status, resp_body.reason
                     )
                 )
             return data
-        except Exception as ex:
+        except ApiException as ex:
             logger.error(ex)
-            raise Exception(ERR_MESSAGE_TEMPLATE.format(error=ex))
+            raise FetchForecastException(ERR_MESSAGE_TEMPLATE.format(error=ex))
 
     @staticmethod
     def get_forecasting(url: str):

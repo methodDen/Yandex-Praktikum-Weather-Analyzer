@@ -4,7 +4,9 @@ import multiprocessing
 import os
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from json.decoder import JSONDecodeError
 from typing import List
+from urllib.error import HTTPError
 
 from external.analyzer import analyze_json, deep_getitem
 from external.client import YandexWeatherAPI
@@ -19,7 +21,7 @@ class DataFetchingTask:
             url_with_data = get_url_by_city_name(city_name)
             data["data"] = YandexWeatherAPI.get_forecasting(url_with_data)
             return data
-        except Exception as ex:
+        except (HTTPError, JSONDecodeError) as ex:
             logging.error(f"Error during fetching data for {city_name}: {ex}")
             data["data"] = {}
             return data
@@ -30,7 +32,7 @@ class DataFetchingTask:
 
     @staticmethod
     def get_weather_data() -> List[dict]:
-        with ThreadPoolExecutor(max_workers=4) as pool:
+        with ThreadPoolExecutor() as pool:
             results = pool.map(
                 DataFetchingTask.get_weather_data_by_city, CITIES,
             )
@@ -42,29 +44,21 @@ class DataFetchingTask:
 class DataCalculationTask:
     @staticmethod
     def calculate_chunk_sum_for_metrics(data: List[dict]) -> dict:
-        try:
-            return {
-                "temp_avg_sum": sum(
-                    [
-                        deep_getitem(d, "temp_avg")
-                        for d in data
-                        if deep_getitem(d, "temp_avg") is not None
-                    ],
-                ),
-                "relevant_cond_hours_sum": sum(
-                    [deep_getitem(d, "relevant_cond_hours") for d in data],
-                ),
-                "number_of_days": sum(
-                    1 for d in data if deep_getitem(d, "hours_count") > 0
-                ),
-            }
-        except Exception as ex:
-            logging.error(f"Error during calculating data: {ex}")
-            return {
-                "temp_avg_sum": 0,
-                "relevant_cond_hours_sum": 0,
-                "number_of_days": 0,
-            }
+        return {
+            "temp_avg_sum": sum(
+                [
+                    deep_getitem(d, "temp_avg")
+                    for d in data
+                    if deep_getitem(d, "temp_avg") is not None
+                ],
+            ),
+            "relevant_cond_hours_sum": sum(
+                [deep_getitem(d, "relevant_cond_hours") for d in data],
+            ),
+            "number_of_days": sum(
+                1 for d in data if deep_getitem(d, "hours_count") > 0
+            ),
+        }
 
     @staticmethod
     def sort_calculated_data(data: List[dict]) -> List[dict]:
@@ -127,7 +121,8 @@ class DataCalculationTask:
                         3,
                     )
                 else:
-                    logging.warning(f"No data for {data['city_name']}")
+                    logging.warning(
+                        f"Data for calculating average values for city '{data['city_name']}' is absent")
                     data["avg_temp"] = 0
                     data["avg_relevant_cond_hours"] = 0
         data_list = DataCalculationTask.sort_calculated_data(data_list)

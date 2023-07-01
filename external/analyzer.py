@@ -18,33 +18,17 @@ INPUT_TEMPERATURE_PATH = "temp"
 INPUT_CONDITION_PATH = "condition"
 INPUT_DAY_HOURS_START = 9
 INPUT_DAY_HOURS_END = 19
-INPUT_DAY_SUITABLE_CONDITIONS = [
+INPUT_DAY_SUITABLE_CONDITIONS = (
     "clear",
     "partly-cloudy",
     "cloudy",
     "overcast",
-    # "drizzle",
-    # "light-rain",
-    # "rain",
-    # "moderate-rain",
-    # "heavy-rain",
-    # "continuous-heavy-rain",
-    # "showers",
-    # "wet-snow",
-    # "light-snow",
-    # "snow",
-    # "snow-showers",
-    # "hail",
-    # "thunderstorm",
-    # "thunderstorm-with-rain",
-    # "thunderstorm-with-hail"
-]
+)
 
 OUTPUT_RAW_DATA_KEY = "raw_data"
 OUTPUT_DAYS_KEY = "days"
 DEFAULT_OUTPUT_RESULT = {
     OUTPUT_DAYS_KEY: [],
-    # OUTPUT_RAW_DATA_KEY: None,
 }
 
 
@@ -52,6 +36,7 @@ def deep_getitem(obj, path: str):
     try:
         return reduce(getitem, path.split(">"), obj)
     except (KeyError, TypeError):
+        logging.warning(f"Can't get value from {obj} by path '{path}'")
         return None
 
 
@@ -156,7 +141,6 @@ class DayInfo:
         conds_count = 0
 
         self.hours = self.raw_data[INPUT_HOURS_PATH]
-        # ToDo force sort by hour key in asc mode
         for hour_data in self.hours:
             if not HourInfo.is_hour_suitable(hour_data):
                 continue
@@ -182,11 +166,9 @@ def analyze_json(data):
         logging.warning("Input data is empty...")
         return {}
 
-    # analyzing days
     time_start = None
     days_data = deep_getitem(data, INPUT_FORECAST_PATH)
     days = []
-    # ToDo force sort by day in asc mode
     for day_data in days_data:
         d_info = DayInfo(raw_data=day_data)
         d_date = d_info.date
@@ -196,7 +178,6 @@ def analyze_json(data):
         days.append(d_info.to_json())
 
     result = DEFAULT_OUTPUT_RESULT
-    # result[OUTPUT_RAW_DATA_KEY] = data
     result[OUTPUT_DAYS_KEY] = days
     return result
 

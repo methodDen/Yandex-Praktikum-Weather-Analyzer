@@ -42,7 +42,7 @@ repos:
         ]
 
 -   repo: https://github.com/pre-commit/mirrors-autopep8
-    rev: ''  # Use the sha / tag you want to point at
+    rev: ''
     hooks:
     -   id: autopep8
         args: [
